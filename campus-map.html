@@ -49,7 +49,7 @@ function initMap(mapDataUrl){
         {attribution:'Tiles (c) Esri - Source: Esri, Maxar, Earthstar Geographics, GIS User Community'}
     );
 
-    openStreetMap.addTo(map);
+openStreetMap.addTo(map);
     console.log("Base map tile layer loaded" + Date());
 
     const markerGroups ={};
@@ -60,7 +60,7 @@ function initMap(mapDataUrl){
             data.forEach( pin => {
                 const type = pin.locationType || "Other";
 
-                //Create Marker Group
+                //Create Marker Groups
                 if(!markerGroups[type]){
                     markerGroups[type] = L.layerGroup();
                 }
@@ -73,7 +73,26 @@ function initMap(mapDataUrl){
 
                 markerGroups[type].addLayer(marker);
             });
+            //Add all groups to map initially
+            Object.values(markerGroups).forEach(group => group.addTo(map));
 
+            //Layer control
+            const baseMaps={
+                "OpenStreetMap":openStreetMap,
+                "Satellite": satellite
+            }
+
+            const overlayMaps={};
+
+            //Add marker groups to the map according to layer filter
+            Object.keys(markerGroups).forEach(type=>{
+                overlayMaps[type] = markerGroups[type];
+            });
+            
+            //Add all elements into the map
+            L.control.layers(baseMaps,overlayMaps,{collapsed:false}).addTo(map);
+        })
+        .catch(err => console.error('Error loading JSON', err));
 }
 document.addEventListener("DOMContentLoaded",()=>{
     initMap('campus-map.json');
